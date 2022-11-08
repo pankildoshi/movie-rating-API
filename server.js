@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors());
 
 mongoose.connect(
-  "mongodb+srv://admin:admin@cluster0.kubwg2z.mongodb.net/movie-rating?retryWrites=true&w=majority",
+  "mongodb+srv://admin:admin@cluster0.rqpu9td.mongodb.net/movie-rating?retryWrites=true&w=majority",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -112,6 +112,16 @@ function mongoConnected() {
         return res.status(400).json({ error: "No records found!" });
       }
       return res.status(200).json(users);
+    });
+  });
+
+  // getting specific user by _id
+  app.get("/user/id/:id", (req, res) => {
+    User.find({ _id: req.params.id }, (err, users) => {
+      if (err) {
+        return res.status(400).json({ error: err });
+      }
+      return res.status(200).json(users[0]);
     });
   });
 

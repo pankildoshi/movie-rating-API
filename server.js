@@ -40,7 +40,7 @@ function mongoConnected() {
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
       { movie_name: req.params.movie_name },
-      { _id: 0, __v: 0 },
+      { __v: 0 },
       (err, movie) => {
         if (err) {
           return res.status(400).json({ error: "Movie not found!" });
@@ -51,6 +51,18 @@ function mongoConnected() {
         return res.status(200).json(movie);
       }
     );
+  });
+
+  app.get("/movie/id/:id", (req, res) => {
+    Movie.find({ _id: req.params.id }, { __v: 0 }, (err, movie) => {
+      if (err) {
+        return res.status(400).json({ error: "Movie not found!" });
+      }
+      if (movie && movie.length == 0) {
+        return res.status(400).json({ error: "No records found!" });
+      }
+      return res.status(200).json(movie);
+    });
   });
 
   app.delete("/movie/delete/:id", (req, res) => {

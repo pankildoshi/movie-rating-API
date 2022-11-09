@@ -39,7 +39,7 @@ function mongoConnected() {
 
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
-      { movie_name: new RegExp('^' +req.params.movie_name + '$', 'i') },
+      { movie_name: new RegExp('^' +req.params.movie_name, 'i') },
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {

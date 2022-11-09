@@ -39,14 +39,14 @@ function mongoConnected() {
 
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
-      { movie_name: req.params.movie_name },
-      { __v: 0 },
+      { movie_name: new RegExp('^' +req.params.movie_name, 'i') },
+      { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
-          return res.status(400).json({ error: "Movie not found!" });
+          return res.json({ error: "Movie not found!" });
         }
         if (movie && movie.length == 0) {
-          return res.status(400).json({ error: "No records found!" });
+          return res.json({ error: "No records found!" });
         }
         return res.status(200).json(movie);
       }

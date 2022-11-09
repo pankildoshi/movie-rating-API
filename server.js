@@ -1,7 +1,7 @@
 var express = require("express");
 var cors = require("cors");
 var mongoose = require("mongoose");
-const { User, Movie } = require("./model.js");
+const { User, Movie, Watchlist } = require("./model.js");
 
 var app = express();
 
@@ -52,6 +52,52 @@ function mongoConnected() {
       }
     );
   });
+  app.post("/watchlist", (req, res) => {
+    var newWatchlist = new Watchlist(req.body);
+    newWatchlist.save(function (err, result) {
+      if (err)
+        return res.json({ status: "error", data: err });
+      return res.json({ status: "ok", data: result });
+    });
+  });
+  app.get("/watchlist/:userid", (req, res) => {
+    Watchlist.find(
+      { userid: req.params.userid},
+      { _id: 0, __v: 0 },
+      (err, movie) => {
+        if (err) {
+          return res.json({ status: "error", error: err });
+        }
+        if (movie && movie.length == 0) {
+          return res.json({ status: "error", error: err });
+        }
+        return res.status(200).json(movie);
+      }
+    );
+  });
+  app.get("/watchlist/:userid/:movieid", (req, res) => {
+    Watchlist.find(
+      { userid: req.params.userid,movieid:req.params.movieid},
+      { _id: 0, __v: 0 },
+      (err, movie) => {
+        if (err) {
+          return res.json({ status: "error", error: err });
+        }
+        if (movie && movie.length == 0) {
+          return res.json({ status: "error", error: err });
+        }
+        return res.status(200).json(movie);
+      }
+    );
+  });
+  app.delete("/watchlist/delete/:objectid", (req, res) => {
+    Watchlist.deleteOne({ movieid: req.params.objectid }, function (err, result) {
+      if (err) 
+        return res.json({ status: "error", data: err });
+      return res.json({ status: "ok", data: result });
+    });
+  });
+
 
   app.get("/movie/id/:id", (req, res) => {
     Movie.find({ _id: req.params.id }, { __v: 0 }, (err, movie) => {
@@ -165,10 +211,9 @@ function mongoConnected() {
       req.body,
       { useFindAndModify: false },
       (err, result) => {
-        if (err) {
-          return res.status(400).json({ error: err });
-        }
-        return res.status(200).json({ result });
+        if (err) 
+          return res.json({ status: "error", data: err });
+      return res.json({ status: "ok", data: result });
       }
     );
   });
@@ -228,6 +273,8 @@ function mongoConnected() {
     });
   });
   // users collection ends
+
+
 }
 app.listen(port, function (err) {
   if (err) console.log("Error in server setup");

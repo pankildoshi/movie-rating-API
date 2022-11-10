@@ -1,7 +1,7 @@
 var express = require("express");
 var cors = require("cors");
 var mongoose = require("mongoose");
-const { User, Movie, Review } = require("./model.js");
+const { User, Movie, Review, Watchlist } = require("./model.js");
 
 var app = express();
 
@@ -39,16 +39,62 @@ function mongoConnected() {
 
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
-      { movie_name: req.params.movie_name },
-      { __v: 0 },
+      { movie_name: new RegExp("^" + req.params.movie_name, "i") },
+      { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
-          return res.status(400).json({ error: "Movie not found!" });
+          return res.json({ error: "Movie not found!" });
         }
         if (movie && movie.length == 0) {
-          return res.status(400).json({ error: "No records found!" });
+          return res.json({ error: "No records found!" });
         }
         return res.status(200).json(movie);
+      }
+    );
+  });
+  app.post("/watchlist", (req, res) => {
+    var newWatchlist = new Watchlist(req.body);
+    newWatchlist.save(function (err, result) {
+      if (err) return res.json({ status: "error", data: err });
+      return res.json({ status: "ok", data: result });
+    });
+  });
+  app.get("/watchlist/:userid", (req, res) => {
+    Watchlist.find(
+      { userid: req.params.userid },
+      { _id: 0, __v: 0 },
+      (err, movie) => {
+        if (err) {
+          return res.json({ status: "error", error: err });
+        }
+        if (movie && movie.length == 0) {
+          return res.json({ status: "error", error: err });
+        }
+        return res.status(200).json(movie);
+      }
+    );
+  });
+  app.get("/watchlist/:userid/:movieid", (req, res) => {
+    Watchlist.find(
+      { userid: req.params.userid, movieid: req.params.movieid },
+      { _id: 0, __v: 0 },
+      (err, movie) => {
+        if (err) {
+          return res.json({ status: "error", error: err });
+        }
+        if (movie && movie.length == 0) {
+          return res.json({ status: "error", error: err });
+        }
+        return res.status(200).json(movie);
+      }
+    );
+  });
+  app.delete("/watchlist/delete/:objectid", (req, res) => {
+    Watchlist.deleteOne(
+      { movieid: req.params.objectid },
+      function (err, result) {
+        if (err) return res.json({ status: "error", data: err });
+        return res.json({ status: "ok", data: result });
       }
     );
   });
@@ -168,10 +214,8 @@ function mongoConnected() {
       req.body,
       { useFindAndModify: false },
       (err, result) => {
-        if (err) {
-          return res.status(400).json({ error: err });
-        }
-        return res.status(200).json({ result });
+        if (err) return res.json({ status: "error", data: err });
+        return res.json({ status: "ok", data: result });
       }
     );
   });

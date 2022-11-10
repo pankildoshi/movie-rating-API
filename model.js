@@ -9,7 +9,13 @@ const userSchema = new mongoose.Schema(
   },
   { collection: "users" }
 );
-
+const watchlistSchema = new mongoose.Schema(
+  {
+    userid: String,
+    movieid: String,
+  },
+  { collection: "watchlist" }
+);
 const movieSchema = new mongoose.Schema(
   {
     movie_name: String,
@@ -38,10 +44,12 @@ const reviewSchema = new mongoose.Schema(
 const Movie = mongoose.model("Movie", movieSchema);
 const User = mongoose.model("User", userSchema);
 const Review = mongoose.model("Review", reviewSchema);
+const Watchlist = mongoose.model("Watchlist", watchlistSchema);
 
 // Exporting our model objects
 module.exports = {
   User,
   Movie,
   Review,
+  Watchlist,
 };

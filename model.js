@@ -14,21 +14,34 @@ const movieSchema = new mongoose.Schema(
   {
     movie_name: String,
     release_date: String,
-    boxoffice_collection: Number,
+    boxoffice_collection: String,
     cover_image: String,
     poster_image: String,
     trailer: String,
     avg_rating: String,
     category: Array,
+    rating_counts: String,
   },
   { collection: "movies" }
 );
 
+const reviewSchema = new mongoose.Schema(
+  {
+    movieid: String,
+    userid: String,
+    message: String,
+    rating: String,
+  },
+  { collection: "reviews" }
+);
+
 const Movie = mongoose.model("Movie", movieSchema);
 const User = mongoose.model("User", userSchema);
+const Review = mongoose.model("Review", reviewSchema);
 
 // Exporting our model objects
 module.exports = {
   User,
   Movie,
+  Review,
 };

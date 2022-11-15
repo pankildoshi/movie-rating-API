@@ -80,7 +80,7 @@ function mongoConnected() {
 
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
-      { movie_name: new RegExp('^' + req.params.movie_name, 'i') },
+      { movie_name: new RegExp("^" +req.params.movie_name, 'i') },
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -96,14 +96,13 @@ function mongoConnected() {
   app.post("/watchlist", (req, res) => {
     var newWatchlist = new Watchlist(req.body);
     newWatchlist.save(function (err, result) {
-      if (err)
-        return res.json({ status: "error", data: err });
+      if (err) return res.json({ status: "error", data: err });
       return res.json({ status: "ok", data: result });
     });
   });
   app.get("/watchlist/:userid", (req, res) => {
     Watchlist.find(
-      { userid: req.params.userid },
+      { userid: req.params.userid},
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -118,7 +117,7 @@ function mongoConnected() {
   });
   app.get("/watchlist/:userid/:movieid", (req, res) => {
     Watchlist.find(
-      { userid: req.params.userid, movieid: req.params.movieid },
+      { userid: req.params.userid,movieid:req.params.movieid},
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -138,7 +137,6 @@ function mongoConnected() {
       return res.json({ status: "ok", data: result });
     });
   });
-
 
   app.get("/movie/id/:id", (req, res) => {
     Movie.find({ _id: req.params.id }, { __v: 0 }, (err, movie) => {
@@ -174,15 +172,18 @@ function mongoConnected() {
     });
   });
 
-  app.put("/movie/update/:id", (req, res) => {
-    Movie.findOneAndUpdate(
-      { _id: req.params.id },
-      req.body,
-      function (err, result) {
-        if (err) return res.status(400).json({ error: err });
-        return res.status(200).json({ result });
-      }
-    );
+  app.put("/movie/update/:id", async (req, res) => {
+    const rating = req.body.avg_rating;
+    const count = req.body.rating_counts;
+    try {
+      const result = await Movie.updateOne(
+        { _id: req.params.id },
+        { $set: { avg_rating: rating, rating_counts: count } }
+      );
+      return res.json({ status: "ok", data: result });
+    } catch (error) {
+      res.json({ status: "error", error: error });
+    }
   });
   // movie collection ends
 
@@ -277,7 +278,6 @@ function mongoConnected() {
   app.post("/register-user", (req, res) => {
     let user = new User(req.body);
     const username = user.username;
-    console.log(user);
     user.save(function (err, result) {
       if (err) {
         return res.json({ status: "error", error: err });
@@ -305,7 +305,7 @@ function mongoConnected() {
   });
 
   // user login
-  app.post("/login-user", async (req, res) => {
+  app.post("/login-user", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
@@ -329,7 +329,33 @@ function mongoConnected() {
   });
   // users collection ends
 
+  // review collection starts
+  app.post("/review", (req, res) => {
+    var review = new Review(req.body);
+    review.save(function (err, result) {
+      if (err) return res.json({ status: "error", error: err });
+      return res.json({ status: "ok", data: result });
+    });
+  });
 
+  // getting all reviews by id
+  app.get("/reviews/:movieid", (req, res) => {
+    Review.find(
+      { movieid: req.params.movieid },
+      { _id: 1, __v: 0 },
+      (err, reviews) => {
+        if (err) {
+          return res.status(400).json({ status: "error", error: err });
+        }
+        if (reviews && reviews.length == 0) {
+          return res.json({ status: "No records" });
+        }
+        return res.json({ status: "ok", data: reviews });
+      }
+    );
+  });
+
+  // review collection ends
 }
 app.listen(port, function (err) {
   if (err) console.log("Error in server setup");

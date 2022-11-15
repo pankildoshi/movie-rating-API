@@ -1,6 +1,7 @@
 var express = require("express");
 var cors = require("cors");
 var mongoose = require("mongoose");
+var nodemailer = require('nodemailer');
 const { User, Movie, Watchlist } = require("./model.js");
 
 var app = express();
@@ -10,6 +11,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(cors());
+
+
+
+
 
 mongoose.connect(
   "mongodb+srv://admin:admin@cluster0.rqpu9td.mongodb.net/movie-rating?retryWrites=true&w=majority",
@@ -24,6 +29,42 @@ db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", mongoConnected);
 
 function mongoConnected() {
+  // Reset Password
+  
+
+  app.get("/resetpassword/:email", (req, res) => {
+    function generateOTP(){
+      var otp=0;
+      for(let i=0;i<6;i++)
+      {
+        otp = (otp*10) + Math.floor(Math.random()*9);
+      }
+      return otp;
+    }
+    var randomotp = generateOTP();
+    console.log(randomotp);
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'movierating420@gmail.com',
+        pass: 'usuxvvyfduibptxq'
+      }
+    });
+    var mailOptions = {
+      from: 'movierating420@gmail.com',
+      to: req.params.email,
+      subject: 'Change Password Request',
+      text: 'You have requested to change your password, In order to reset the existing password from the website enter the given otp to validate yourself: '+randomotp
+    };
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        return res.json({ "status": "failure"});
+      } else {
+        return res.json({"otp":randomotp,"status":"success"});
+      }
+    });
+  });
+
   // movie collection starts
   app.get("/movies", (req, res) => {
     Movie.find({}, { _id: 1, __v: 0 }, (err, movies) => {
@@ -39,7 +80,7 @@ function mongoConnected() {
 
   app.get("/movie/:movie_name", (req, res) => {
     Movie.find(
-      { movie_name: new RegExp('^' +req.params.movie_name, 'i') },
+      { movie_name: new RegExp('^' + req.params.movie_name, 'i') },
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -62,7 +103,7 @@ function mongoConnected() {
   });
   app.get("/watchlist/:userid", (req, res) => {
     Watchlist.find(
-      { userid: req.params.userid},
+      { userid: req.params.userid },
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -77,7 +118,7 @@ function mongoConnected() {
   });
   app.get("/watchlist/:userid/:movieid", (req, res) => {
     Watchlist.find(
-      { userid: req.params.userid,movieid:req.params.movieid},
+      { userid: req.params.userid, movieid: req.params.movieid },
       { _id: 0, __v: 0 },
       (err, movie) => {
         if (err) {
@@ -92,7 +133,7 @@ function mongoConnected() {
   });
   app.delete("/watchlist/delete/:objectid", (req, res) => {
     Watchlist.deleteOne({ movieid: req.params.objectid }, function (err, result) {
-      if (err) 
+      if (err)
         return res.json({ status: "error", data: err });
       return res.json({ status: "ok", data: result });
     });
@@ -211,9 +252,23 @@ function mongoConnected() {
       req.body,
       { useFindAndModify: false },
       (err, result) => {
-        if (err) 
+        if (err)
           return res.json({ status: "error", data: err });
-      return res.json({ status: "ok", data: result });
+        return res.json({ status: "ok", data: result });
+      }
+    );
+  });
+  app.put("/user/email/:email", (req, res) => {
+    console.log(req.params.email);
+    console.log(req.body);
+    User.findOneAndUpdate(
+      { email: req.params.email },
+      req.body,
+      { useFindAndModify: false },
+      (err, result) => {
+        if (err)
+          return res.json({ status: "error", data: err });
+        return res.json({ status: "ok", data: result });
       }
     );
   });

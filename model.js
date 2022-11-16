@@ -34,7 +34,7 @@ const movieSchema = new mongoose.Schema(
 const reviewSchema = new mongoose.Schema(
   {
     movieid: String,
-    userid: String,
+    username: String,
     message: String,
     rating: String,
   },

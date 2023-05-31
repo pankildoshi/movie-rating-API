@@ -2,23 +2,20 @@ var express = require("express");
 var cors = require("cors");
 var mongoose = require("mongoose");
 var nodemailer = require("nodemailer");
+var dotenv = require("dotenv");
 const { User, Movie, Watchlist, Review } = require("./model.js");
 
 var app = express();
 
-const port = process.env.PORT || 8000;
+dotenv.config();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
 app.use(cors());
 
-mongoose.connect(
-  "mongodb+srv://admin:admin@cluster0.rqpu9td.mongodb.net/movie-rating?retryWrites=true&w=majority",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -282,24 +279,6 @@ function mongoConnected() {
       }
       return res.json({ status: "ok", data: result });
     });
-    // User.findOne({ username }, (err, user) => {
-    //   if (err) {
-    //     return res.json({ status: "error", error: err });
-    //   }
-    //   if (user) {
-    //     return res.json({
-    //       status: "error",
-    //       error: "Username is already taken. Please select another username.",
-    //     });
-    //   }
-    //   User.create({
-    //     name: user.name,
-    //     username: user.username,
-    //     email: user.email,
-    //     password: user.password,
-    //   });
-    //   return res.json({ status: "ok" });
-    // });
   });
 
   // user login
@@ -360,7 +339,7 @@ function mongoConnected() {
 
   // review collection ends
 }
-app.listen(port, function (err) {
+app.listen(process.env.PORT || 8000, function (err) {
   if (err) console.log("Error in server setup");
-  else console.log("Server listening on Port", port);
+  else console.log("Server listening on Port", process.env.PORT || 8000);
 });
